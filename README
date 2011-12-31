@@ -1,0 +1,61 @@
+1B2 PMON说明
+默认工作频率：CPU 266MHz DDR2 133MHz
+默认使用串口2作为调试串口
+默认使用GAMC0 IP地址为192.168.1.2
+默认使用480x272的分辨率
+内存大小64MByte
+
+1.
+  由于生产测试代码的需要，1B2开发板的PMON中对两个网络控制器都进行了初始化，所以PMON中两个网络接口都是可以使用的，默认使用  GMAC0，如果要使用GMAC1，请把跳线帽接到JP2插针上。
+  设置GMAC0 IP地址的方法为： 
+    set ifconfig syn0:xxx.xxx.xxx.xxx
+  xxx.xxx.xxx.xxx为IP地址，设置IP地址后使用的是GMAC0
+  设置GMAC1 IP地址的方法为：
+    set ifconfig syn1:xxx.xxx.xxx.xxx
+  这时使用的是GMAC1
+  注意：PMON中两个GMAC暂时不能同时使用，同一时间只有一个GMAC通信，具体看设置的是那个GMAC的地址。
+
+2.
+  由于GMAC1和UART0的引脚复用，所以1B2开发板的UART0没有初始化，默认使用UART2。
+  由于生产测试代码的需要，只有UART2串口有信息输出，其他串口都关闭。
+  注意：内核和文件系统都要配置为使用串口2。PMON中修改串口地址的文件在/Targets/LS1B/include/fcr.h文件
+        修改宏定义#define COM1_BASE_ADDR	0xbfe48000  即可，其他串口地址可以参考芯片手册。
+        
+3.
+  设置CPU和DDR内存工作频率：
+  PMON中添加了通过环境变量来设置CPU和DDR内存工作频率的功能，
+    pll_reg0 由于设置倍频系数
+    pll_reg1 用于设置LCD、CPU和DDR内存的分频系数
+  默认值为
+    pll_reg0 0x14
+    pll_reg1 0x92292a00
+  这时CPU频率为266MHz，DDR2内存频率为133MHz
+  如果需要设置内存频率为177Mhz，使用命令：
+    set pll_reg1 0x9228ea00
+  就可以。
+  注意：南亚的内存运行在177MHz频率上不稳定，所以设置频率的时候注意开发板使用的内存是否为南亚内存颗粒，如果是设置频率时请谨        慎，设置不当会造成系统不能启动。
+
+4.
+  LCD显示器帧频设置：
+  PMON中LCD帧频默认使用70Hz,如果需要设置帧频使用命令：
+    set frame_rate xx
+  xx表示帧频，建议设置范围50-200Hz
+  1B2开发板PMON默认使用480x272分辨率的LCD屏，修改分辨率的命令是：
+    set xres xxx      x轴分辨率 xxx表示分像素大小
+    set yres xxx      y轴分辨率 xxx表示分像素大小
+
+5.
+  运行生产测试代码的命令为
+    test
+  用于检测各个模块是否可用，易用性还在改进，欢迎测试和提供改进意见。
+  测试NAND Flash时会对Flash的1块进行擦除和读写，可能会破坏原有数据，请慎用。
+
+注意：
+PMON不支持USB热插拔；对SD卡的支持还有点问题；该版本PMON只针对1B2开发板，在其他开发板上运行该版PMON可能会出问题。
+
+通过网络tftp更新PMON的方法为：
+load -r -f 0xbfc00000 tftp://xxx.xxx.xxx.xxx/gzrom.bin  xxx.xxx.xxx.xxx为PMON设置的IP地址。
+
+技术支持：唐海峰
+
+
